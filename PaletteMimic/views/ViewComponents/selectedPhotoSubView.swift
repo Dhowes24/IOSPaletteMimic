@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 struct selectedPhoto: View {
-    let width: CGFloat
+    let geometry: GeometryProxy
     @Binding var image: UIImage?
     @State private var isImagePickerDisplay = false
     @State private var animationAmount = 1.0
@@ -29,7 +29,7 @@ struct selectedPhoto: View {
                     if image != nil {
                         Image(uiImage: image!)
                             .resizable()
-                            .frame(width: width, height: width) 
+                            .frame(width: geometry.size.width * 0.4, height: geometry.size.width * 0.4)
                             .aspectRatio(contentMode: .fit)
                             .clipShape(RoundedRectangle(cornerRadius: 25))
                     }
@@ -37,7 +37,7 @@ struct selectedPhoto: View {
                         Image(systemName: "photo.circle.fill")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: width)
+                            .frame(width: geometry.size.width * 0.4)
                     }
                 }
                 .buttonStyle(.automatic)
@@ -48,7 +48,7 @@ struct selectedPhoto: View {
                 ImagePickerView(selectedImage: self.$image, sourceType: .photoLibrary)
             }
         }
-        .frame(alignment: .center)
+//        .frame(alignment: .center)
     }
     
 }
@@ -57,7 +57,7 @@ struct SelectedPhoto_Previews: PreviewProvider {
     static var previews: some View {
         GeometryReader { geometry in
 
-            selectedPhoto(width: geometry.size.width*0.4, image: .constant(nil))
+            selectedPhoto(geometry: geometry, image: .constant(nil))
 
         }
     }

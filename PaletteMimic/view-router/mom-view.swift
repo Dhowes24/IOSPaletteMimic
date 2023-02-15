@@ -16,7 +16,7 @@ struct mom_view: View {
         ZStack{
             switch viewRouter.currentPage {
             case .main:
-                pictureIntakeScreen()
+                pictureIntakeView()
             }
         }
     }

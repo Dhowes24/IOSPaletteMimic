@@ -8,20 +8,18 @@
 import SwiftUI
 
 struct backgroundPalette: View {
-    
-    let height: CGFloat
+    let geometry: GeometryProxy
     let colorPalette: [Color]
     
     var body: some View {
         if !colorPalette.isEmpty {
             HStack(spacing: 0){
-                ForEach(0..<colorPalette.count) { i in
+                ForEach(0..<16) { i in
                     Rectangle()
                         .fill(
                             colorPalette[i]
                         )
-                        .frame(width: 26, height: height * 0.4)
-                        .ignoresSafeArea()
+                        .frame(width: 26, height: geometry.size.height * 0.4)
                         .padding(0)
                 }
             }
@@ -32,7 +30,7 @@ struct backgroundPalette: View {
 struct backgroundPalette_Previews: PreviewProvider {
     static var previews: some View {
         GeometryReader { geometry in
-            backgroundPalette(height: geometry.size.height ,colorPalette: [])
+            backgroundPalette(geometry: geometry ,colorPalette: [])
         }
     }
 }

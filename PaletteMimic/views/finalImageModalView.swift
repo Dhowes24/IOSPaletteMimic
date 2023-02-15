@@ -18,25 +18,28 @@ struct finalImageModal: View {
             ZStack {
                 
                 RoundedRectangle(cornerRadius: 25, style: .continuous)
-                    .fill(.orange)
+                    .fill(.gray)
                     .frame(width: geometry.size.width-40, height: geometry.size.height-60, alignment: .center)
                 
                 VStack {
                     Button {
-                        withAnimation { showView.toggle() }
-                        
-                    } label: {
-                        Image(systemName: "x.circle")
-                            .foregroundColor(.black)
-                            .font(.largeTitle)
+                        withAnimation { self.showView = false }
+                    } label:                    {
+                        Image(systemName: "x.circle.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 50)
+                            .buttonStyle(.automatic)
+                            .tint(.black)
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .trailing)
+                    
                     Spacer()
                 }
                 
                 finalPhoto(width: geometry.size.width*0.4, image: photo)
-                        .frame(width: geometry.size.width*0.4)
+                    .frame(width: geometry.size.width*0.4)
             }
         }
     }

@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct PaletteMimicApp: App {
+    @StateObject var viewRouter = ViewRouter()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            mom_view().environmentObject(viewRouter)
         }
     }
 }

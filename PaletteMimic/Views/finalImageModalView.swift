@@ -38,8 +38,8 @@ struct finalImageModal: View {
                     Spacer()
                 }
                 
-                finalPhoto(width: geometry.size.width*0.4, image: photo)
-                    .frame(width: geometry.size.width*0.4)
+                finalPhoto(width: geometry.size.width*0.8, image: photo)
+                    .frame(width: geometry.size.width*0.8)
             }
         }
     }

@@ -8,6 +8,11 @@
 import Foundation
 import SwiftUI
 
+struct Pixel: Codable {
+    var color: UInt32
+    var place: Int
+}
+
 extension pictureIntakeView {
     @MainActor class pictureIntake_ViewModel: ObservableObject {
         
@@ -20,12 +25,12 @@ extension pictureIntakeView {
         
         var firstPalette: [UInt32] = []
         @Published var firstColorifiedPalette: [Color] = Array(repeating: Color.white, count: 16)
-        @Published var firstSortedArr: [UInt32] = []
+        @Published var firstSortedArr: [Pixel] = []
         @Published var firstProgress = -0.1
         
         var secondPalette: [UInt32] = []
         @Published var secondColorifiedPalette: [Color] = Array(repeating: Color.white, count: 16)
-        @Published var secondSortedArr: [UInt32] = []
+        @Published var secondSortedArr: [Pixel] = []
         @Published var secondProgress = -0.1
         
         @MainActor func findRed(_ pixel: UInt32) -> UInt32 {
@@ -40,27 +45,27 @@ extension pictureIntakeView {
             return (pixel & 0x00ff0000) >> 16
         }
         
-        func find_pixel_range(data: [UInt32]) -> @MainActor (UInt32) -> UInt32 {
+        func find_pixel_range(data: [Pixel]) -> @MainActor (UInt32) -> UInt32 {
             
             var minMaxArr = [[UInt32]](repeating: [255,0], count: 3)
             for y in 0 ..< data.count-1 {
                 
                 //Red
-                let red = findRed(data[y])
+                let red = findRed(data[y].color)
                 if red < minMaxArr[0][0] {
                     minMaxArr[0][0] = red }
                 else if red >= minMaxArr[0][1] {
                     minMaxArr[0][1] = red }
                 
                 //Blue
-                let blue = findBlue(data[y])
+                let blue = findBlue(data[y].color)
                 if blue < minMaxArr[1][0] {
                     minMaxArr[1][0] = blue }
                 else if blue > minMaxArr[1][1] {
                     minMaxArr[1][1] = blue }
                 
                 //Green
-                let green = findGreen(data[y])
+                let green = findGreen(data[y].color)
                 if green < minMaxArr[2][0] {
                     minMaxArr[2][0] = green }
                 else if green >= minMaxArr[2][1] {
@@ -89,11 +94,11 @@ extension pictureIntakeView {
             return(colorRange)
         }
         
-        func find_pixel_avg(img_arr: [UInt32], colorRange: @MainActor (UInt32) -> UInt32) -> UInt32 {
+        func find_pixel_avg(img_arr: [Pixel], colorRange: @MainActor (UInt32) -> UInt32) -> UInt32 {
             
             var avg:UInt32 = 0
             for i in 0..<img_arr.count {
-                avg += colorRange(img_arr[i])
+                avg += colorRange(img_arr[i].color)
             }
             
             return avg / UInt32(img_arr.count)
@@ -118,7 +123,7 @@ extension pictureIntakeView {
             return pixelData
         }
         
-        func split_into_buckets(img: UIImage, img_arr: [UInt32], depth: Int, photoNum: Int) async {
+        func split_into_buckets(img: UIImage, img_arr: [Pixel], depth: Int, photoNum: Int) async {
             
             if img_arr.count == 0 {
                 return
@@ -132,7 +137,7 @@ extension pictureIntakeView {
             
             let color_range = find_pixel_range(data: img_arr)
             var sorted_arr = img_arr
-            sorted_arr.sort {(color_range($0) as UInt32) < (color_range($1) as UInt32)}
+            sorted_arr.sort {(color_range($0.color) as UInt32) < (color_range($1.color) as UInt32)}
             let median_index = (sorted_arr.count + 1)/2
             
             await split_into_buckets(img: img, img_arr: Array(sorted_arr[0...median_index]), depth: depth-1, photoNum: photoNum)
@@ -140,7 +145,7 @@ extension pictureIntakeView {
             
         }
         
-        func median_cut_quantize(img_arr: [UInt32], photoNum: Int) {
+        func median_cut_quantize(img_arr: [Pixel], photoNum: Int) {
             
             let r_avg = find_pixel_avg(img_arr: img_arr, colorRange: findRed)
             let b_avg = find_pixel_avg(img_arr: img_arr, colorRange: findGreen)
@@ -174,24 +179,41 @@ extension pictureIntakeView {
         }
         
         func UInt32_call() async {
-                        
-            Task {
-                let firstImageData = get_pixel_data(img: firstImage!)
-                print("beginning 1st Image")
-                firstProgress = 0.0
-                await split_into_buckets(img: firstImage!, img_arr: firstImageData!, depth: 4, photoNum: 1)
-                firstProgress += 0.1
+            firstColorifiedPalette = Array(repeating: Color.white, count: 16)
+            firstPalette = []
+            firstSortedArr = []
+            
+            var imageData: [Pixel] = []
+            var count = 0
+            let firstImageData = get_pixel_data(img: firstImage!)
+            for pixel in firstImageData! {
+                imageData.append(Pixel(color: pixel, place: count))
+                count += 1
             }
+            print("beginning 1st Image")
+            firstProgress = 0.0
+            await split_into_buckets(img: firstImage!, img_arr: imageData, depth: 4, photoNum: 1)
+            firstProgress += 0.1
             
-            Task{
-                let secondImageData = get_pixel_data(img: secondImage!)
-                print("beginning 2nd Image")
-                secondProgress = 0.0
-                await split_into_buckets(img: secondImage!, img_arr: secondImageData!, depth: 4, photoNum: 2)
-                secondProgress += 0.1
+            print(firstPalette)
+            
+            secondColorifiedPalette = Array(repeating: Color.white, count: 16)
+            secondPalette = []
+            secondSortedArr = []
+               
+            imageData = []
+            count = 0
+            let secondImageData = get_pixel_data(img: secondImage!)
+            for pixel in secondImageData! {
+                imageData.append(Pixel(color: pixel, place: count))
+                count += 1
             }
+            print("beginning 2nd Image")
+            secondProgress = 0.0
+            await split_into_buckets(img: secondImage!, img_arr: imageData, depth: 4, photoNum: 2)
+            secondProgress = 1.1
             
-            
+            print(secondPalette)
         }
     }
 }
